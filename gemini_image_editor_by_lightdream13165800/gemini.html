@@ -1,0 +1,170 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Image Editor</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+    }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Gemini Image Editor</h1>
+        
+        <div class="upload-section">
+            <div id="drop-area">
+                <p>Drag & drop an image here, click to select, or paste from clipboard</p>
+                <input type="file" id="fileInput" accept="image/*">
+                <div id="preview-container"></div>
+            </div>
+        </div>
+        
+        <div class="prompt-section">
+            <div class="mode-selector">
+                <div id="modeTabAnimation" class="mode-tab active">Animation Mode</div>
+                <div id="modeTabCharacter" class="mode-tab">Character Transformation</div>
+                <div id="modeTabStyle" class="mode-tab">Style Transformation</div>
+            </div>
+            
+            <div id="animationModeContent">
+                <h2>Frame Prompts</h2>
+                
+                <button id="togglePromptMode" class="toggle-prompt-mode">Switch to Manual Prompts</button>
+                
+                <div id="singlePromptContainer" class="single-prompt-container active">
+                    <label>Enter a single prompt (e.g. "walk", "jump", "dance", "transform"):</label>
+                    <textarea id="singlePromptInput" placeholder="Enter a simple action or transformation (e.g. 'walk', 'grow', 'dance')..."></textarea>
+                    <div id="presetToggle" class="preset-dropdown">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                        </svg>
+                    </div>
+                    <div id="presetList" class="preset-list"></div>
+                    <p>The AI will automatically generate a sequence of 6 prompts showing progression.</p>
+                </div>
+                
+                <div id="multiplePromptsContainer" class="frame-prompts">
+                    <div class="frame-prompt">
+                        <label>Frame 1:</label>
+                        <textarea class="prompt-input" placeholder="Describe the first transformation step..."></textarea>
+                    </div>
+                    <div class="frame-prompt">
+                        <label>Frame 2:</label>
+                        <textarea class="prompt-input" placeholder="Describe the second transformation step..."></textarea>
+                    </div>
+                    <div class="frame-prompt">
+                        <label>Frame 3:</label>
+                        <textarea class="prompt-input" placeholder="Describe the third transformation step..."></textarea>
+                    </div>
+                    <div class="frame-prompt">
+                        <label>Frame 4:</label>
+                        <textarea class="prompt-input" placeholder="Describe the fourth transformation step..."></textarea>
+                    </div>
+                    <div class="frame-prompt">
+                        <label>Frame 5:</label>
+                        <textarea class="prompt-input" placeholder="Describe the fifth transformation step..."></textarea>
+                    </div>
+                    <div class="frame-prompt">
+                        <label>Frame 6:</label>
+                        <textarea class="prompt-input" placeholder="Describe the final transformation step..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="characterModeContent" style="display: none;">
+                <h2>Character Transformation</h2>
+                
+                <div class="mode-selector" style="margin-bottom: 15px;">
+                    <label class="mode-option">
+                        <input type="radio" name="transformMode" id="characterModeRadio" checked>
+                        Character Mode
+                    </label>
+                    <label class="mode-option">
+                        <input type="radio" name="transformMode" id="designModeRadio">
+                        Design Variation Mode
+                    </label>
+                </div>
+                
+                <button id="autoGenerateBtn" class="auto-generate-btn">Auto-Suggest Transformations</button>
+                
+                <div id="contentTypeDisplay" class="content-type-display"></div>
+                
+                <div id="suggestionGrid" class="suggestion-grid">
+                    <!-- Suggestions will be populated here -->
+                </div>
+                
+                <div class="single-prompt-container active">
+                    <label>Enter characters or designs to transform into (separate multiple with commas):</label>
+                    <textarea id="characterInput" placeholder="E.g. rabbit, frog, panda, eagle, raccoon, owl"></textarea>
+                    <div id="characterPresetToggle" class="preset-dropdown">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                        </svg>
+                    </div>
+                    <div id="characterPresetList" class="preset-list"></div>
+                    
+                    <div id="designPresetToggle" class="preset-dropdown" style="top: 80px;">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                        </svg>
+                    </div>
+                    <div id="designPresetList" class="preset-list"></div>
+                    
+                    <p>The AI will transform your image while maintaining the same style and aesthetic.</p>
+                </div>
+            </div>
+            
+            <div id="styleModeContent" style="display: none;">
+                <h2>Style Transformation</h2>
+                
+                <button id="autoGenerateStyleBtn" class="auto-generate-btn">Auto-Suggest Styles</button>
+                
+                <div id="styleSuggestionGrid" class="style-suggestion-grid">
+                    <!-- Style suggestions will be populated here -->
+                </div>
+                
+                <div class="single-prompt-container active">
+                    <label>Enter styles to transform this image into (separate multiple with commas):</label>
+                    <textarea id="styleInput" placeholder="E.g. Disney style, Pixar style, Studio Ghibli style"></textarea>
+                    <div id="stylePresetToggle" class="preset-dropdown">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                        </svg>
+                    </div>
+                    <div id="stylePresetList" class="preset-list"></div>
+                    
+                    <p>The AI will transform your image to match the selected style while maintaining the same subject, pose, and composition.</p>
+                </div>
+            </div>
+            
+            <button id="generateBtn">Generate Images</button>
+        </div>
+        
+        <div class="results-section">
+            <h2>Generated Frames</h2>
+            <button id="createGifBtn" class="gif-button" disabled>Create GIF Animation</button>
+            <div class="loading-spinner" id="loadingSpinner">
+                <svg viewBox="0 0 50 50" class="spinner">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                </svg>
+                <p>Generating images...</p>
+            </div>
+            <div class="image-grid" id="imageGrid"></div>
+        </div>
+    </div>
+    
+    <script type="module" src="config.js"></script>
+    <script type="module" src="gif-utils.js"></script>
+    <script type="module" src="image-analyzer.js"></script>
+    <script type="module" src="character-transformer.js"></script>
+    <script type="module" src="style-transformer.js"></script>
+    <script type="module" src="style-transformer-enhanced.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
